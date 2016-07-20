@@ -1,0 +1,27 @@
+.cron-tab .nav > li > a {
+    padding: 5px 10px;
+}
+
+.cron-tab .line {
+    height: 25px;
+    line-height: 25px;
+    margin: 3px;
+}
+
+.cron-tab .number {
+    width: 58px;
+    height: 20px;
+    line-height: 20px;
+}
+
+.cron-tab .number-4 {
+    width: 88px;
+}
+
+.cron-tab .col {
+    width: 95px;
+}
+
+.cron-tab td {
+    padding: 1px;
+}

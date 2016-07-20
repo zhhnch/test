@@ -1,6 +1,10 @@
 bss_wrap.controller('cronTabController', [
     '$scope',
     function ($scope) {
+        $scope.data = {};
+        $scope.event = {};
+        $scope.models = {};
+        $scope.options = {};
         var _conf = {
             expReg: {
                 everyTime: /^[*]$/,
@@ -28,9 +32,7 @@ bss_wrap.controller('cronTabController', [
                 unAppoint: '?',
                 appoint: {},
                 realValue: '',
-                curMethod: '',
-                minValue: 0,
-                maxValue: 59
+                curMethod: ''
             },
             minute: {
                 required: true,
@@ -44,9 +46,7 @@ bss_wrap.controller('cronTabController', [
                 unAppoint: '?',
                 appoint: {},
                 realValue: '',
-                curMethod: '',
-                minValue: 0,
-                maxValue: 59
+                curMethod: ''
             },
             hour: {
                 required: true,
@@ -60,9 +60,7 @@ bss_wrap.controller('cronTabController', [
                 unAppoint: '?',
                 appoint: {},
                 realValue: '',
-                curMethod: '',
-                minValue: 0,
-                maxValue: 59
+                curMethod: ''
             },
             day: {
                 required: true,
@@ -79,9 +77,7 @@ bss_wrap.controller('cronTabController', [
                 lastDayOfMonth: 'L',
                 appoint: {},
                 realValue: '',
-                curMethod: '',
-                minValue: 1,
-                maxValue: 31
+                curMethod: ''
             },
             month: {
                 required: true,
@@ -96,27 +92,23 @@ bss_wrap.controller('cronTabController', [
                 unAppoint: '?',
                 appoint: {},
                 realValue: '',
-                curMethod: '',
-                minValue: 1,
-                maxValue: 12
+                curMethod: ''
             },
             week: {
                 required: true,
                 allowMethods: ['everyTime', 'unAppoint', 'range', 'dayOfWeek', 'lastWeekDayOfMonth', 'appoint'],
                 defaultMethod: 'unAppoint',
                 everyTime: '*',
-                range_begin: 0,
-                range_end: 1,
+                range_begin: 1,
+                range_end: 7,
                 unAppoint: '?',
                 allWeekDay: 'W',
                 dayOfWeek_day: 1,
                 dayOfWeek_week: 1,
-                lastWeekDayOfMonth: 1,
+                lastWeekDayOfMonth: 5,
                 appoint: {},
                 realValue: '',
-                curMethod: '',
-                minValue: 1,
-                maxValue: 7
+                curMethod: ''
             },
             year: {
                 required: false,
@@ -130,19 +122,23 @@ bss_wrap.controller('cronTabController', [
                 unAppoint: '?',
                 appoint: {},
                 realValue: '',
-                curMethod: '',
-                minValue: 1970,
-                maxValue: 2099
+                curMethod: ''
             }
         };
         var _flatOptions = {
             showFields: ['second', 'minute', 'hour', 'day', 'month', 'week', 'year'],
-            lang: ''
+            lang: '',
+            minMonth:1,
+            maxMonth:12,
+            minDayOfWeek:1,
+            maxDayOfWeek:7,
+            minDayOfMonth:1,
+            maxDayOfMonth:31,
+            minYear:2014,
+            maxYear:2099
         };
-        var _cronOptions = {};
-        $scope.models = {};
-        $scope.expression = '';
-        $scope.setValue = function (time) {
+        $scope.data.cronExp = '';
+        $scope.event.setValue = function (time) {
             if ($scope.models[time]) {
                 var method = $scope.models[time].curMethod;
                 if (method && _realValueFactory.hasOwnProperty(method)) {
@@ -161,7 +157,7 @@ bss_wrap.controller('cronTabController', [
          * 日/周 必须有一个不指定值
          * @param dayOrWeek
          */
-        $scope.toggleDayOrWeek = function (dayOrWeek) {
+        $scope.event.toggleDayOrWeek = function (dayOrWeek) {
             if (dayOrWeek === 'day' && $scope.models.day.curMethod !== 'unAppoint') {
                 $scope.$apply(function () {
                     $scope.models.week.curMethod = 'unAppoint';
@@ -176,61 +172,69 @@ bss_wrap.controller('cronTabController', [
         /**
          * 生成cron表达式
          */
-        $scope.buildExpression = function () {
+        $scope.event.buildCronExp = function () {
             var values = [];
-            _cronOptions.showFields.forEach(function (field) {
+            $scope.options.showFields.forEach(function (field) {
                 if ($scope.models[field].required || (!$scope.models[field].required && $scope.models[field].realValue)) {
                     values.push($scope.models[field].realValue);
                 }
             });
-            $scope.expression = values.join(' ');
-            console.log($scope.expression);
+            $scope.data.cronExp = values.join(' ');
         };
 
 
-        $scope.setAllValues = function () {
-            _cronOptions.showFields.forEach(function (field) {
-                $scope.setValue(field);
+        $scope.event.setAllValues = function () {
+            $scope.options.showFields.forEach(function (field) {
+                $scope.event.setValue(field);
             });
         };
 
         /**
          *
-         * @param {String} exp cron表达式
-         * @param {Object} opt
-         * @param {Object} models 表单初始化值
+         * @param {String|mixed} exp cron表达式
+         * @param {Object|mixed} opt
+         * @param {Object|mixed} models 表单初始化值
          */
-        $scope.initCronTab = function (exp, opt, models) {
-            _cronOptions = _cronExtend(_cronExtend({}, _flatOptions), opt, _flatOptions);
-            _cronOptions.showFields.forEach(function (k) {
-                $scope.models[k] = _cronExtend({}, _flatModels[k]);
+        $scope.event.initCronTab = function (exp, opt, models) {
+            $scope.options = _cronExtend(_cronExtend({}, _flatOptions, null), opt, _flatOptions);
+            $scope.options.showFields.forEach(function (k) {
+                $scope.models[k] = _cronExtend({}, _flatModels[k], null);
                 $scope.models[k].curMethod = $scope.models[k].defaultMethod;
                 if (models && models[k]) {
                     $scope.models[k] = _cronExtend($scope.models[k], models[k], _flatModels[k]);
                 }
             });
             if (exp) {
-                $scope.setExp(exp);
+                $scope.event.setCronExp(exp);
+            }else{
+                $scope.event.setAllValues();
             }
+            $scope.event.buildCronExp();
         };
 
         /**
          *
          * @param exp
          */
-        $scope.setExp = function (exp) {
-            var models = parseExp(exp);
-            _cronOptions.showFields.forEach(function (k) {
+        $scope.event.setCronExp = function (exp) {
+            var models = _parseExp(exp);
+            $scope.options.showFields.forEach(function (k) {
                 _cronExtend($scope.models[k], models[k], _flatModels[k]);
             });
         };
 
-        function parseExp(exp) {
+        /**
+         * 解析表达式到model
+         * @param exp
+         * @returns {{}}
+         * @private
+         */
+        function _parseExp(exp) {
             var arr = exp.split(' ');
             var model = {};
             var i = 0;
             for (; i < arr.length; i++) {
-                var key = _cronOptions.showFields[i];
+                var key = $scope.options.showFields[i];
                 model[key] = {};
                 Object.keys(_conf.expReg).forEach(function (method) {
                     if (_conf.expReg[method].test(arr[i])) {
@@ -248,6 +252,10 @@ bss_wrap.controller('cronTabController', [
             return model;
         }
 
+        /**
+         * 解析表达式字段
+         * @private
+         */
         var _parserFactory = {
 
             everyTime: function () {
@@ -322,6 +330,14 @@ bss_wrap.controller('cronTabController', [
             }
         };
 
+        /**
+         *
+         * @param {Object|mixed} target
+         * @param {Object|mixed} src
+         * @param {Object|null|undefined} flat
+         * @returns {{}|*}
+         * @private
+         */
         function _cronExtend(target, src, flat) {
             target = angular.isObject(target) ? target : {};
             if (angular.isObject(src)) {
@@ -334,6 +350,10 @@ bss_wrap.controller('cronTabController', [
             return target;
         }
 
+        /**
+         * 生成表达式字段的值
+         * @private
+         */
         var _realValueFactory = {
             /**
              * 通配 *
@@ -379,7 +399,11 @@ bss_wrap.controller('cronTabController', [
                 values = values.filter(function (val) {
                     return !(false === model.appoint[val] || ('undefined' === typeof(model.appoint[val])));
                 });
-                return values.join(',');
+                if(values.length > 0){
+                    return values.join(',');
+                }else{
+                    return false;
+                }
             },
             /**
              *  工作日 W
@@ -441,18 +465,27 @@ bss_wrap.directive('cronTab', function () {
         require: ['?ngModel'],
         controller: 'cronTabController',
         link: function (scope, element, attr, ctrls) {
-            scope.initCronTab('0 5 0/12 ? 1/3 ? 2014-2016');
-            element.delegate('input', 'change', [], function (event) {
-                event.stopPropagation();
-                var time = event.target.getAttribute('name');
+            var modelCtrl = ctrls[0];
+            var exp = '';
+            if(modelCtrl && modelCtrl.$viewValue){
+                exp = modelCtrl.$viewValue;
+            }
+            scope.event.initCronTab(exp, {}, {});
+            element.delegate('#cronTabContent input', 'change', [], function (e) {
+                e.stopPropagation();
+                var time = e.target.getAttribute('name');
                 if (time === 'day' || time === 'week') {
-                    scope.toggleDayOrWeek(time);
+                    scope.event.toggleDayOrWeek(time);
                 }
-                scope.setAllValues();
-                scope.buildExpression();
+                if(!scope.$$phase){
+                    scope.$apply(function(){
+                        scope.event.setAllValues();
+                        scope.event.buildCronExp();
+                    });
+                }
             });
             element.on('$destroy', function () {
-                element.undelegate('input', 'change');
+                element.undelegate('#cronTabContent input', 'change');
             });
         }
     };
