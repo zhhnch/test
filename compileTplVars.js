@@ -6,7 +6,7 @@ const APP_ROOT = path.normalize(`${__dirname}${path.sep}..`);
 // const INDEX_PATH = path.normalize(`${APP_ROOT}${path.sep}index.html`);
 const REG_TPL_APP_VERSION = /%appVersion%/;
 const FILE_ENCODE = 'utf-8';
-const ASSETS_ORIGIN = '//cdn.mms.ukelink.com:3008';
+const ASSETS_ORIGIN = '//my.test.com:3008';
 const REG_TPL_ASSETS_ORIGIN = /%assetsOrigin%/;
 let realAppVersion = 'v1.0.01';
 
